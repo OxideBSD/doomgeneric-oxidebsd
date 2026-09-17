@@ -126,9 +126,17 @@ uint32_t DG_GetTicksMs(void)
 #define OX_KEY_LSHIFT    0x8c
 #define OX_KEY_RSHIFT    0x8d
 
-// Translates this kernel's own keycode space to doomkeys.h's -- ASCII letters/digits/space need
-// no translation (both spaces use plain ASCII for those). Ctrl -> fire, Alt -> the (default)
-// strafe-modifier key, Shift -> run, matching vanilla Doom's own default keyboard bindings.
+// Translates this kernel's own keycode space to doomkeys.h's -- ASCII letters/digits/most
+// punctuation need no translation. Ctrl -> fire, Alt -> the (default) strafe-modifier key,
+// Shift -> run, matching vanilla Doom's own default keyboard bindings. **Space is a real,
+// deliberate exception, not passthrough**: real chocolate-doom's own compiled-in default for
+// `key_use` is `KEY_USE` (0xa2, doomkeys.h's internal, non-ASCII "use" code) -- real upstream only
+// ever binds it to the physical spacebar (ASCII 0x20) via a bundled `default.cfg` that this port
+// never seeds/loads (no config file exists anywhere in this tree), so `key_use` stays stuck at its
+// raw C-level default. Left as ASCII passthrough, a physical spacebar press produced 0x20, which
+// never matched `gamekeydown[key_use]` (0xa2) -- Space silently never opened doors. Fixed the same
+// way Ctrl->KEY_FIRE already is: translate the physical key directly to the logical code
+// `key_use` actually holds.
 static unsigned char translate_key(unsigned char keycode)
 {
 	switch (keycode) {
@@ -146,7 +154,8 @@ static unsigned char translate_key(unsigned char keycode)
 	case OX_KEY_RALT: return KEY_RALT;
 	case OX_KEY_LSHIFT: return KEY_RSHIFT;
 	case OX_KEY_RSHIFT: return KEY_RSHIFT;
-	default: return keycode; // ASCII passthrough for letters/digits/space/punctuation.
+	case ' ': return KEY_USE;
+	default: return keycode; // ASCII passthrough for letters/digits/punctuation.
 	}
 }
 
