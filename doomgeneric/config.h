@@ -97,4 +97,5 @@
 #undef ORIGCODE
 
 /* Define to the directory where all game files are located */
-#define FILES_DIR "."
+/* OxideBSD: where Unix ports keep IWADs, so doom finds its WAD from any directory. */
+#define FILES_DIR "/usr/share/games/doom"
